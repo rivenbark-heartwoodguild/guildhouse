@@ -22,7 +22,7 @@ GuildHouse is a pattern. The core tier (file-based working memory) needs nothing
 
 | Tier | What | Required? | Options |
 |------|------|-----------|---------|
-| **Working Memory** | Markdown files with YAML frontmatter | Yes (the foundation) | Any AI coding assistant with file-based memory. Built on [Claude Code](https://docs.anthropic.com/en/docs/claude-code)'s auto-memory system. |
+| **Workbench** | Markdown files with YAML frontmatter | Yes (the foundation) | Any AI coding assistant with file-based memory. Built on [Claude Code](https://docs.anthropic.com/en/docs/claude-code)'s auto-memory system. |
 | **Semantic Search** | Vector store over your documents | Recommended | [QMD](https://github.com/tobilu/qmd), Obsidian + Smart Connections, any embedding pipeline |
 | **Knowledge Graph** | Structured facts with temporal validity | Optional (adds precision) | [MemPalace](https://github.com/milla-jovovich/mempalace/tree/main), or any structured store (SQLite, Neo4j, even a JSON file with typed triples) |
 | **Router** | Query classification + dispatch logic | The whole point | Start with the 5-rule table below. Customize through benchmarks. |
@@ -62,11 +62,11 @@ MemPalace is the filing cabinet that knows exactly when facts became true and wh
 Best for: exact facts, temporal queries, entity lookups, relationship verification.
 Worst for: narrative, context, "tell me about..."
 
-### GuildHouse (Working Memory)
+### Workbench (Working Memory)
 
 Feedback, project state, session outcomes, patterns. Warm and lived-in.
 
-This is the guildhall where craft knowledge accumulates. Session checkpoints, user corrections, design decisions, tool workarounds, things that were tried and failed. It's file-based and grep-friendly -- not sophisticated, but fast and current. The kind of memory that makes an AI assistant feel like it was paying attention yesterday.
+This is the workbench where craft knowledge accumulates. Session checkpoints, user corrections, design decisions, tool workarounds, things that were tried and failed. It's file-based and grep-friendly -- not sophisticated, but fast and current. The kind of memory that makes an AI assistant feel like it was paying attention yesterday.
 
 Best for: recent activity, project state, accumulated preferences.
 Worst for: deep history, cross-project patterns, semantic similarity.

@@ -20,7 +20,7 @@ These patterns emerged from running a three-tier memory system in production ove
 | KG fact contradicts document evidence | `[FIX]` | Draft KG update for human approval |
 | Entity's newest mention is >30 days old across all systems | `[DECAY]` | Flag for review — is this still active? |
 | Entity found in documents but has no KG triples | `[GAP]` | Draft seed triples from document context |
-| Entity found in KG and documents but has no memory file | `[COVERAGE]` | Consider adding to working memory |
+| Entity found in KG and documents but has no memory file | `[COVERAGE]` | Consider adding to the Workbench |
 
 **Output:** A health report surfaced at session start:
 ```

@@ -28,9 +28,9 @@ Every entry is a triple: entity, relationship, value — optionally with tempora
 
 ---
 
-### GuildHouse (File-Based / Working Memory Tier)
+### Workbench (File-Based / Working Memory Tier)
 
-Warm, lived-in. The guildhall where working knowledge accumulates.
+Warm, lived-in. The workbench where working knowledge accumulates.
 
 This is markdown files on disk: feedback notes, project status, session outcomes, decision logs, checklists. Fast because it's just files (grep, cat, read). Always available because there's no service to go down. Organized by human convention (directories, naming patterns, index files) rather than by algorithm.
 
@@ -79,7 +79,7 @@ Each tier has a fundamental capability the others lack:
 | Capability | Which Tier | Why Others Can't |
 |------------|-----------|-----------------|
 | Temporal validity ("what was true when?") | MemPalace | Files don't track validity ranges. Vectors don't know time. |
-| Zero-latency project context ("what's happening now?") | GuildHouse | KG requires explicit entry. Vector search requires indexing. Files are instant. |
+| Zero-latency project context ("what's happening now?") | Workbench | KG requires explicit entry. Vector search requires indexing. Files are instant. |
 | Meaning-based retrieval ("what's related to this?") | Semantic Search | KG only finds explicit relationships. Files only find keyword matches. |
 
 A system with only one tier has two blind spots. A system with two tiers has one. The three-tier architecture eliminates the structural blind spots — the remaining gaps are data quality, not architecture.
@@ -88,7 +88,7 @@ A system with only one tier has two blind spots. A system with two tiers has one
 
 ## The Router Layer
 
-GuildHouse (the project, not the tier) sits above all three tiers. Its job:
+The GuildHouse router sits above all three tiers. Its job:
 
 1. **Classify the query** — What shape is this question? (See [Routing Table](routing-table.md))
 2. **Pick the route** — Which tier(s) should handle it?
@@ -106,11 +106,11 @@ The router is where the intelligence lives. The tiers are storage and retrieval 
         │    Router     │  ← classifies, routes, fast-paths
         └──┬───┬───┬───┘
            │   │   │
-     ┌─────▼┐ ┌▼────┐ ┌▼───────┐
-     │ Mem  │ │Guild│ │Semantic│
-     │Palace│ │House│ │ Search │
-     └──────┘ └─────┘ └────────┘
-     structured  files  vectors
+     ┌─────▼┐ ┌▼─────┐ ┌▼───────┐
+     │ Mem  │ │Work- │ │Semantic│
+     │Palace│ │bench │ │ Search │
+     └──────┘ └──────┘ └────────┘
+     structured  files   vectors
 ```
 
 ---
@@ -121,7 +121,7 @@ Not every system needs three tiers on day one. Build incrementally:
 
 ### Minimum Viable: File-Based Memory
 
-Start with a `MEMORY.md` index and a directory of markdown files. Organize by type: feedback, projects, sessions, reference. This is GuildHouse's core tier and it's remarkably effective on its own.
+Start with a `MEMORY.md` index and a directory of markdown files. Organize by type: feedback, projects, sessions, reference. The Workbench is GuildHouse's core tier, and it's remarkably effective on its own.
 
 **You get:** Fast project context, feedback tracking, session continuity.
 **You miss:** Meaning-based search, temporal precision, cross-document synthesis.
