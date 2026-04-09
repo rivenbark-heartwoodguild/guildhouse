@@ -162,19 +162,35 @@ ttl_days: 14
 ---
 ```
 
-**The check (42 lines of bash):**
-```bash
-#!/bin/bash
-TODAY=$(date +%s)
-STALE=0
-for file in "$MEMORY_DIR"/*.md; do
-  VERIFIED=$(grep -m1 'last_verified:' "$file" | awk '{print $2}')
-  TTL=$(grep -m1 'ttl_days:' "$file" | awk '{print $2}')
-  [ -z "$VERIFIED" ] || [ -z "$TTL" ] && continue
-  DAYS_OLD=$(( (TODAY - $(date -d "$VERIFIED" +%s)) / 86400 ))
-  [ "$DAYS_OLD" -gt "$TTL" ] && STALE=$((STALE + 1))
-done
-[ "$STALE" -gt 0 ] && echo "Warning: $STALE memory file(s) past TTL"
+**The check (Python — cross-platform):**
+```python
+#!/usr/bin/env python3
+import os, re, sys
+from datetime import datetime, date
+
+memory_dir = os.environ.get("MEMORY_DIR", "memory")
+today = date.today()
+stale = 0
+
+for fname in sorted(os.listdir(memory_dir)):
+    if not fname.endswith(".md"):
+        continue
+    path = os.path.join(memory_dir, fname)
+    with open(path) as f:
+        head = f.read(1024)
+    verified = re.search(r'last_verified:\s*(\d{4}-\d{2}-\d{2})', head)
+    ttl = re.search(r'ttl_days:\s*(\d+)', head)
+    if not verified or not ttl:
+        continue
+    days_old = (today - datetime.strptime(verified.group(1), "%Y-%m-%d").date()).days
+    if days_old > int(ttl.group(1)):
+        stale += 1
+        print(f"  Stale: {fname} ({days_old}d old, TTL {ttl.group(1)}d)")
+
+if stale:
+    print(f"Warning: {stale} memory file(s) past TTL")
+else:
+    print("All memory files within TTL")
 ```
 
 **Recommended TTLs:**

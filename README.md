@@ -14,6 +14,21 @@ A hybrid retrieval architecture for AI memory systems.
 
 GuildHouse is a routing layer that sits between your AI assistant and multiple memory backends -- knowledge graphs, vector stores, file-based memory -- and dispatches each query to the system best suited to answer it. The result: better answers at lower cost than any single system achieves alone.
 
+In practice, it's a set of conventions for organizing markdown-based memory files with YAML frontmatter, a query routing table derived from real benchmarks, and patterns for keeping knowledge healthy over time. No database, no framework -- just structured files and the intelligence to know which system should answer each question.
+
+## What You Need
+
+GuildHouse is a pattern. The core tier (file-based working memory) needs nothing but a filesystem. The full architecture adds two more systems:
+
+| Tier | What | Required? | Options |
+|------|------|-----------|---------|
+| **Working Memory** | Markdown files with YAML frontmatter | Yes (the foundation) | Any AI coding assistant with file-based memory. Built on [Claude Code](https://docs.anthropic.com/en/docs/claude-code)'s auto-memory system. |
+| **Semantic Search** | Vector store over your documents | Recommended | [QMD](https://github.com/tobilu/qmd), Obsidian + Smart Connections, any embedding pipeline |
+| **Knowledge Graph** | Structured facts with temporal validity | Optional (adds precision) | [MemPalace](https://github.com/milla-jovovich/mempalace/tree/main), or any structured store (SQLite, Neo4j, even a JSON file with typed triples) |
+| **Router** | Query classification + dispatch logic | The whole point | Start with the 5-rule table below. Customize through benchmarks. |
+
+You can start with just the first tier and add the others as you feel the pain they solve. See [Architecture](reference/architecture.md) for the incremental build path.
+
 ## The Problem
 
 Every memory system has a blind spot.
@@ -128,6 +143,36 @@ After the basics are working, these patterns take the system further:
 
 - **[Automation & Hooks](guides/automation.md)** — Session lifecycle, the prepare→index→embed pipeline, and scheduled maintenance
 - **[Advanced Patterns](reference/advanced-patterns.md)** — Knowledge gardening, checkpoints, prefetch, decision replay, staleness detection, and transactional knowledge
+
+## How Is This Different from RAG?
+
+RAG (Retrieval-Augmented Generation) retrieves from one store, then generates. GuildHouse is the layer *before* retrieval that decides which store to ask.
+
+| | RAG | GuildHouse |
+|---|---|---|
+| **Core question** | "What's relevant to this query?" | "Which system should answer this query?" |
+| **Architecture** | One retrieval system → one generation step | Multiple retrieval systems → router → best system(s) → generation |
+| **Optimization** | Better embeddings, better chunking, better prompts | Better routing — knowing when NOT to call a system saves more than improving any single system |
+| **Failure mode** | Wrong chunks retrieved → wrong answer | Wrong system queried → wrong answer shape (precise when you needed narrative, or verbose when you needed a single fact) |
+
+GuildHouse isn't a replacement for RAG. It's a router that might send some queries to your RAG pipeline, some to a knowledge graph, and some to a fast file lookup -- depending on the query shape. You probably already have the retrieval systems. GuildHouse helps you use them better.
+
+## FAQ
+
+**Does this only work with Claude Code?**
+The reference implementation and guides are written for Claude Code's auto-memory system (`~/.claude/projects/.../memory/`). But the pattern -- structured markdown files, YAML frontmatter, a routing table, health checks -- works with any AI assistant that can read files. Cursor, Windsurf, Copilot, or a custom setup would need different file paths and hook mechanisms, but the architecture is the same.
+
+**What if I don't have a knowledge graph?**
+Start without one. The file-based memory tier + semantic search covers most query shapes. Add a structured store when you keep asking "when did X change?" and can't find the answer. See [Architecture § What You Actually Need](reference/architecture.md) for the incremental build path.
+
+**How much setup time does this take?**
+The basic file-based memory tier takes 30 minutes (see [Getting Started](guides/getting-started.md)). Adding semantic search depends on your tool -- QMD indexes a directory of markdown in under a minute. A knowledge graph is the most investment, but it's optional. Most of the value comes from the first tier.
+
+**Can I use this with a different vector store?**
+Yes. The routing table describes query shapes and strategies, not specific tools. Swap QMD for Pinecone, Chroma, Weaviate, or anything that takes a text query and returns ranked results. The thresholds (0.95, 0.90) will need recalibration for your system.
+
+**Is the router a piece of software I install?**
+No. The router is a decision pattern -- five rules that classify queries by shape and pick the best retrieval path. You implement it however fits your setup: a bash script, a Claude Code hook, a prompt instruction, or just a mental checklist. The [Routing Table](reference/routing-table.md) documents the rules; the [Drag Race Methodology](reference/drag-race-methodology.md) shows how to derive your own.
 
 ## Limitations and Honest Caveats
 
