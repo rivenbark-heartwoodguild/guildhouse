@@ -34,9 +34,9 @@ GuildHouse emerged from daily use, not theoretical design. It started as a compe
 
 The key insight: routing intelligence matters more than individual system quality. A mediocre vector store with good routing outperforms an excellent vector store answering every query. Twenty-four races didn't produce a winner. They produced a routing table.
 
-## The Three Houses
+## The Architecture
 
-The architecture is organized around three conceptual "houses," each with a distinct role and character.
+GuildHouse routes queries across three tiers, each with a distinct role and character.
 
 ### MemPalace (Knowledge Graph)
 
@@ -56,13 +56,14 @@ This is the guildhall where craft knowledge accumulates. Session checkpoints, us
 Best for: recent activity, project state, accumulated preferences.
 Worst for: deep history, cross-project patterns, semantic similarity.
 
-### LakeHouse (Design Lineage)
+### Semantic Search (Vector Store)
 
-The data architecture ancestor.
+Deep. Finds meaning, not just keywords.
 
-LakeHouse is the Databricks pattern -- unified structured and unstructured storage -- that inspired the tiered approach. It's not a system you install. It's the intellectual heritage: the recognition that structured and unstructured data serve different purposes and should be queried differently, but governed together.
+This is your vector document store -- documents chunked, embedded, and searchable by meaning. Ask "how did the architecture evolve?" and it finds relevant passages even if they never use the word "architecture." Any embedding pipeline works: QMD, Obsidian with Smart Connections, or a custom solution.
 
-The lakehouse pattern taught us that the answer to "structured vs. unstructured" is "both, with a routing layer." GuildHouse applies that lesson to AI memory.
+Best for: conceptual questions, narrative history, cross-document synthesis.
+Worst for: exact facts, temporal precision, "what changed between X and Y?"
 
 ## The Routing Table
 
@@ -142,7 +143,7 @@ GuildHouse wouldn't exist without the systems it learned to route between:
 
 - **[QMD](https://github.com/tobilu/qmd)** by Tobias Ludwig ([@tobilu](https://github.com/tobilu)) -- the vector document store that proved semantic search could be the backbone of AI memory. The hybrid router's best results came from knowing when to trust QMD completely.
 
-- **MemPalace** -- the temporal knowledge graph that taught us structured facts need date ranges, not just values. The insight that "current status" and "status on March 15th" are different queries shaped the entire routing architecture.
+- **[MemPalace](https://github.com/milla-jovovich/mempalace/tree/main)** -- the temporal knowledge graph that taught us structured facts need date ranges, not just values. The insight that "current status" and "status on March 15th" are different queries shaped the entire routing architecture.
 
 - **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** by Anthropic -- the AI coding assistant whose auto-memory system became the warm middle layer. The simplest system in the stack, and often the fastest path to the right answer.
 

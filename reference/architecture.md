@@ -1,10 +1,10 @@
-# Architecture — The Three Houses
+# Architecture
 
 A three-tier memory architecture for AI systems, with a routing layer that classifies queries and directs them to the right tier (or combination of tiers).
 
 ---
 
-## The Three Houses
+## The Three Tiers
 
 ### MemPalace (Structured / Knowledge Graph Tier)
 
@@ -50,11 +50,11 @@ This is markdown files on disk: feedback notes, project status, session outcomes
 
 ---
 
-### LakeHouse (Semantic / Vector Search Tier)
+### Semantic Search (Vector Store Tier)
 
 Deep. Finds meaning, not just keywords.
 
-The intellectual heritage comes from the Databricks Lakehouse pattern: unified structured + unstructured storage in a single system. In practice, this is your vector document store — documents chunked, embedded, and searchable by meaning. Ask "how did the architecture evolve?" and it finds relevant passages even if they never use the word "architecture."
+This is your vector document store — documents chunked, embedded, and searchable by meaning. Ask "how did the architecture evolve?" and it finds relevant passages even if they never use the word "architecture." Any embedding pipeline works: QMD, Obsidian with Smart Connections, or a custom solution.
 
 **Strengths:**
 - Meaning-based retrieval — handles paraphrasing, synonyms, conceptual similarity
@@ -80,7 +80,7 @@ Each tier has a fundamental capability the others lack:
 |------------|-----------|-----------------|
 | Temporal validity ("what was true when?") | MemPalace | Files don't track validity ranges. Vectors don't know time. |
 | Zero-latency project context ("what's happening now?") | GuildHouse | KG requires explicit entry. Vector search requires indexing. Files are instant. |
-| Meaning-based retrieval ("what's related to this?") | LakeHouse | KG only finds explicit relationships. Files only find keyword matches. |
+| Meaning-based retrieval ("what's related to this?") | Semantic Search | KG only finds explicit relationships. Files only find keyword matches. |
 
 A system with only one tier has two blind spots. A system with two tiers has one. The three-tier architecture eliminates the structural blind spots — the remaining gaps are data quality, not architecture.
 
@@ -106,11 +106,11 @@ The router is where the intelligence lives. The tiers are storage and retrieval 
         │    Router     │  ← classifies, routes, fast-paths
         └──┬───┬───┬───┘
            │   │   │
-     ┌─────▼┐ ┌▼────┐ ┌▼──────┐
-     │ Mem  │ │Guild│ │ Lake  │
-     │Palace│ │House│ │ House │
-     └──────┘ └─────┘ └───────┘
-     structured  files  semantic
+     ┌─────▼┐ ┌▼────┐ ┌▼───────┐
+     │ Mem  │ │Guild│ │Semantic│
+     │Palace│ │House│ │ Search │
+     └──────┘ └─────┘ └────────┘
+     structured  files  vectors
 ```
 
 ---
