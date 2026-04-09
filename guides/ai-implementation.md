@@ -183,6 +183,24 @@ If memories aren't being used, the descriptions may be too vague. Rewrite them t
 
 ---
 
+### Step 7: Set up checkpoints (recommended)
+
+At natural milestones during sessions — significant task completed, topic switch, ~30 turns of conversation — write a checkpoint file capturing the current state:
+
+- Current task
+- Key decisions made
+- Important state (what would be lost if context compressed)
+- What's done
+- What remains
+
+Overwrite the same checkpoint file each time — you only need the latest state. This enables recovery after context compression or when resuming in a new session. See [Advanced Patterns](../reference/advanced-patterns.md#checkpoints) for the full format.
+
+### Step 8: Consider hooks (optional)
+
+If the human works daily, hooks that load memory at session start and capture transcripts at session end make the system self-maintaining. Without hooks, memory is passive files. With hooks, it becomes an active learning loop. See [Automation & Hooks](automation.md) for the full pattern.
+
+---
+
 ## Things to Avoid
 
 **Don't save code patterns.** The code itself is the source of truth. If Claude needs to know the codebase's patterns, it should read the code. Memory files that duplicate code patterns go stale immediately.

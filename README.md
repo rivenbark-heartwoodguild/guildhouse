@@ -121,6 +121,13 @@ GuildHouse is a pattern, not a monolith. You can adopt the routing table with wh
 - **[Drag Race Methodology](reference/drag-race-methodology.md)** -- How to benchmark your own retrieval systems head-to-head
 - **[Architecture Deep Dive](reference/architecture.md)** -- System design, data flow, and integration points
 
+## Going Deeper
+
+After the basics are working, these patterns take the system further:
+
+- **[Automation & Hooks](guides/automation.md)** — Session lifecycle, the prepare→index→embed pipeline, and scheduled maintenance
+- **[Advanced Patterns](reference/advanced-patterns.md)** — Knowledge gardening, checkpoints, prefetch, decision replay, staleness detection, and transactional knowledge
+
 ## Limitations and Honest Caveats
 
 The routing table was derived from one team's daily usage patterns -- a small consultancy doing strategy, software, and operations work. Your query distribution will be different. The five rules are a starting point, not a universal law.
