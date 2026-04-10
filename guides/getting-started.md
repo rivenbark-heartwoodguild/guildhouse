@@ -271,15 +271,27 @@ Requires Node.js 18+. Verify it installed: `qmd --help`
 
 ### Configure a collection
 
-Add your memory directory as a QMD collection:
+Add your memory directory as a QMD collection by editing `~/.config/qmd/index.yml`:
 
 ```bash
-# Add a collection pointing at your memory directory
+# Create config directory if it doesn't exist
+mkdir -p ~/.config/qmd
+
+# Compute your memory path
 MEMORY_DIR="$HOME/.claude/projects/$(echo "$(pwd)" | tr '/' '-')/memory"
-qmd collection add my-project "$MEMORY_DIR"
+echo "Your memory dir: $MEMORY_DIR"
 ```
 
-This writes to `~/.config/qmd/index.yml`. You can add multiple collections (one per project, or a shared knowledge directory).
+Then add it to `~/.config/qmd/index.yml` (create the file if it doesn't exist):
+
+```yaml
+collections:
+  my-project:
+    path: /Users/you/path/from/above/memory
+    pattern: "**/*.md"
+```
+
+Replace the `path` with the actual directory printed by the command above. You can add multiple collections (one per project, or a shared knowledge directory).
 
 ### Index and embed
 
@@ -294,8 +306,11 @@ qmd embed
 ### Verify it works
 
 ```bash
-# Search for something in your memories
-qmd search "what decisions were made recently"
+# Keyword search (fast, no embeddings needed)
+qmd search "decisions"
+
+# Semantic search (requires embeddings — run qmd embed first)
+qmd query "what decisions were made recently"
 ```
 
 If results come back, semantic search is working. Re-run `qmd update && qmd embed` whenever you add new memory files, or automate it with [session hooks](automation.md).
