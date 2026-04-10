@@ -315,9 +315,11 @@ qmd query "what decisions were made recently"
 
 If results come back, semantic search is working. Re-run `qmd update && qmd embed` whenever you add new memory files, or automate it with [session hooks](automation.md).
 
-### Using semantic search from Claude Code
+### Connecting QMD to Claude Code
 
-QMD runs as an MCP server that Claude Code can query directly. Add it to your project's `.mcp.json` file (in your project root):
+**Option A: MCP server (recommended)**
+
+Add QMD as an MCP server so Claude can query it directly. In your project's `.mcp.json` (or globally in `~/.claude/settings.json`):
 
 ```json
 {
@@ -330,13 +332,24 @@ QMD runs as an MCP server that Claude Code can query directly. Add it to your pr
 }
 ```
 
-Or add it globally in `~/.claude/settings.json` under the `"mcpServers"` key (same format) so it's available in every project.
+**Option B: Bash-only (no MCP overhead)**
 
-Once connected, Claude can search your memories by meaning using `qmd query` — this is the "Semantic Search" tier in the routing table.
+If you prefer not to run MCP servers, Claude can call QMD via Bash. Add this to your CLAUDE.md or global rules:
 
-### Other vector stores
+```markdown
+For semantic search, run: `qmd query "your question"` via Bash.
+```
 
-QMD is what we use, but any embedding pipeline works. The routing table describes query shapes, not specific tools. If you prefer Chroma, Pinecone, or Obsidian + Smart Connections, substitute them for the semantic search tier.
+This works but is slightly less ergonomic — the AI runs a shell command instead of calling a tool directly. Some teams prefer this for zero tool-budget overhead.
+
+### Other semantic search backends
+
+QMD is what we use, but the "Semantic Search" tier in the routing table is a role, not a specific tool. Any system that takes a text query and returns ranked results works:
+
+- **QMD** — local markdown vector search, npm install, no API keys
+- **MemPalace** — if you already have a knowledge graph with search, it can serve double duty as both the KG and semantic search tiers
+- **Chroma, Pinecone, Weaviate** — cloud or local vector databases
+- **Obsidian + Smart Connections** — if your notes are in Obsidian
 
 ---
 

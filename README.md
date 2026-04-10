@@ -23,7 +23,7 @@ GuildHouse is a pattern. The core tier (file-based working memory) needs nothing
 | Tier | What | Required? | Options |
 |------|------|-----------|---------|
 | **Workbench** | Markdown files with YAML frontmatter | Yes (the foundation) | Any AI coding assistant with file-based memory. Built on [Claude Code](https://docs.anthropic.com/en/docs/claude-code)'s auto-memory system. |
-| **Semantic Search** | Vector store over your documents | Recommended | [QMD](https://github.com/tobilu/qmd), Obsidian + Smart Connections, any embedding pipeline |
+| **Semantic Search** | Vector store over your documents | Recommended | [QMD](https://github.com/tobilu/qmd), Obsidian + Smart Connections, any embedding pipeline. A KG with built-in search (like MemPalace) can fill this role too. |
 | **Knowledge Graph** | Structured facts with temporal validity | Optional (adds precision) | [MemPalace](https://github.com/milla-jovovich/mempalace/tree/main), or any structured store (SQLite, Neo4j, even a JSON file with typed triples) |
 | **Router** | Query classification + dispatch logic | The whole point | Start with the 5-rule table below. Customize through benchmarks. |
 
