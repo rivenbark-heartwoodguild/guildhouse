@@ -346,7 +346,9 @@ The routing table is what makes GuildHouse more than organized files. It tells y
 
 ### Where it goes
 
-Add the routing table to your project's `CLAUDE.md` file (Claude Code reads this at the start of every session):
+The routing table needs to be in a file your AI assistant reads at session start. Where you put it depends on how many projects you have:
+
+**Single project — put it in your project's `CLAUDE.md`:**
 
 ```markdown
 ## Retrieval Routing
@@ -364,9 +366,26 @@ Route retrieval by query shape:
 **Fast-path:** KG exact fact with relevance ≥ 0.95 → stop. Semantic top_score ≥ 0.90 with empty KG → use semantic result directly.
 ```
 
+**Multiple projects — put the routing table in a global rules file, keep project-specific context in each CLAUDE.md:**
+
+Claude Code loads global rules from `~/.claude/rules/*.md` into every session. Create a file like `~/.claude/rules/guildhouse-routing.md` with the routing table, then each project's CLAUDE.md only needs:
+
+```markdown
+## GuildHouse (Retrieval Routing)
+
+Routing table is in ~/.claude/rules/guildhouse-routing.md (loaded globally). This project:
+- **QMD collections:** my-project (primary), shared-knowledge (cross-reference)
+- **KG domain:** [entities relevant to this project]
+- **Dominant shapes:** [which query shapes come up most here]
+```
+
+This way you update the routing logic in one place and it applies everywhere. Each project just declares what to route *to*.
+
+**Other AI assistants:** The concept is the same — put the routing table wherever your assistant reads project instructions. Cursor uses `.cursorrules`, Windsurf uses `.windsurfrules`, Copilot uses `.github/copilot-instructions.md`. The routing table is plain markdown that works in any of these.
+
 ### How it works
 
-There's no separate classification model. The routing table in your CLAUDE.md *is* the classifier — your AI assistant reads the query, pattern-matches it against the five shapes, and picks the route. See [The Routing Table](../reference/routing-table.md) for the full rules and decision logic.
+There's no separate classification model. The routing table in your project instructions *is* the classifier — your AI assistant reads the query, pattern-matches it against the five shapes, and picks the route. See [The Routing Table](../reference/routing-table.md) for the full rules and decision logic.
 
 ### If you don't have a knowledge graph
 
