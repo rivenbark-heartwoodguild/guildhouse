@@ -17,25 +17,47 @@ The core idea: Claude Code already has a memory system. It stores markdown files
 Claude Code stores project memory at:
 
 ```
-~/.claude/projects/<project-path-hash>/memory/
+~/.claude/projects/<project-path>/memory/
 ```
 
-Each project gets its own directory. The `MEMORY.md` file is the index — Claude loads it at the start of every session. It's the table of contents for everything the AI knows about your project between sessions.
+The directory name is your project's absolute path with slashes replaced by dashes. For example:
 
-If you're using Claude Code with auto-memory enabled, this directory already exists. Open it. You'll probably find a flat list of memories with auto-generated names. That's the starting point.
+| Project location | Memory directory |
+|-----------------|-----------------|
+| `/Users/alex/myapp` | `~/.claude/projects/-Users-alex-myapp/memory/` |
+| `/home/alex/work/api` | `~/.claude/projects/-home-alex-work-api/memory/` |
+
+To find yours:
+
+```bash
+# Option 1: Compute it from your project path
+PROJECT_DIR=$(pwd)
+MEMORY_DIR="$HOME/.claude/projects/$(echo "$PROJECT_DIR" | tr '/' '-')/memory"
+echo "$MEMORY_DIR"
+
+# Option 2: List all project directories and look for yours
+ls ~/.claude/projects/
+
+# Option 3: Let Claude Code create it automatically
+# Just start a Claude Code session in your project — it creates the directory on first use
+```
+
+The `MEMORY.md` file inside this directory is the index — Claude loads it at the start of every session. It's the table of contents for everything the AI knows about your project between sessions.
+
+If you're using Claude Code with auto-memory enabled, this directory probably already exists. Open it. You'll likely find a flat list of memories with auto-generated names. That's the starting point.
 
 ---
 
 ## Create Your First Memory Directory
 
-If the directory doesn't exist yet:
+If the directory doesn't exist:
 
 ```bash
-# Find your project's memory path
-ls ~/.claude/projects/
-
-# Look for the directory matching your project
-# The path hash is derived from your project's absolute path
+# Compute the path and create it
+PROJECT_DIR=$(pwd)
+MEMORY_DIR="$HOME/.claude/projects/$(echo "$PROJECT_DIR" | tr '/' '-')/memory"
+mkdir -p "$MEMORY_DIR"
+echo "Created: $MEMORY_DIR"
 ```
 
 If it already exists (likely), the goal isn't creation — it's transformation. You're turning a flat list of memories into a semantically organized system that Claude can navigate efficiently.
@@ -216,6 +238,130 @@ If it doesn't use the memory:
 
 ---
 
+## Adding Semantic Search (Recommended)
+
+File-based memory is fast and free but can only find exact keyword matches. Semantic search finds meaning — "how did the architecture evolve?" matches documents about "system design decisions" even if they never use the word "architecture."
+
+### Install QMD
+
+[QMD](https://github.com/tobilu/qmd) is a local vector search engine over markdown files. Install it globally:
+
+```bash
+npm install -g @tobilu/qmd
+```
+
+### Configure a collection
+
+Create a QMD config file that points at your memory directory:
+
+```bash
+# Create config directory
+mkdir -p ~/.config/qmd
+
+# Add a collection for your project
+cat >> ~/.config/qmd/config.json << 'EOF'
+{
+  "collections": {
+    "my-project": {
+      "paths": ["~/.claude/projects/-Users-you-your-project/memory"]
+    }
+  }
+}
+EOF
+```
+
+Replace the path with your actual memory directory (the one you found in "Where Memory Lives").
+
+### Index and embed
+
+```bash
+# Index your markdown files
+qmd update
+
+# Generate vector embeddings (takes a few seconds)
+qmd embed
+```
+
+### Verify it works
+
+```bash
+# Search for something in your memories
+qmd search "what decisions were made recently"
+```
+
+If results come back, semantic search is working. Re-run `qmd update && qmd embed` whenever you add new memory files, or automate it with [session hooks](automation.md).
+
+### Using semantic search from Claude Code
+
+QMD runs as an MCP server that Claude Code can query directly. Add it to your MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "qmd": {
+      "command": "qmd",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+Once connected, Claude can search your memories by meaning using `qmd query` — this is the "Semantic Search" tier in the routing table.
+
+### Other vector stores
+
+QMD is what we use, but any embedding pipeline works. The routing table describes query shapes, not specific tools. If you prefer Chroma, Pinecone, or Obsidian + Smart Connections, substitute them for the semantic search tier.
+
+---
+
+## Adding the Routing Table to Your Project
+
+The routing table is what makes GuildHouse more than organized files. It tells your AI assistant which retrieval system to use for each query shape.
+
+### Where it goes
+
+Add the routing table to your project's `CLAUDE.md` file (Claude Code reads this at the start of every session):
+
+```markdown
+## Retrieval Routing
+
+Route retrieval by query shape:
+
+| Need | Route | Cost |
+|------|-------|------|
+| **Exact fact** (date, status, price) | KG with predicate filter | 15-67 tok |
+| **Broad entity** ("What is X?") | KG + semantic search in parallel | ~1,875 tok |
+| **Narrative** (history, context) | Semantic search only (lex+vec+hyde) | ~750 tok |
+| **Relationship** (who connects to what) | Semantic search first → KG backfill | ~1,200 tok |
+| **Recent activity** (what happened lately) | File memory (grep dates) → semantic search | ~1,100 tok |
+
+**Fast-path:** KG exact fact with relevance ≥ 0.95 → stop. Semantic top_score ≥ 0.90 with empty KG → use semantic result directly.
+```
+
+### How it works
+
+There's no separate classification model. The routing table in your CLAUDE.md *is* the classifier — your AI assistant reads the query, pattern-matches it against the five shapes, and picks the route. See [The Routing Table](../reference/routing-table.md) for the full rules and decision logic.
+
+### If you don't have a knowledge graph
+
+Skip the KG column. The routing table still works with just two tiers:
+
+| Need | Route (no KG) |
+|------|---------------|
+| **Exact fact** | Semantic search with specific query |
+| **Broad entity** | Semantic search (lex+vec) |
+| **Narrative** | Semantic search (lex+vec+hyde) |
+| **Relationship** | Semantic search → scan for entity names |
+| **Recent activity** | File memory (grep) → semantic search |
+
+You lose temporal precision and exact-fact speed, but the routing pattern still works.
+
+---
+
 ## Next Steps
 
-Once your single-project memory is working well, see [Scaling Across Multiple Projects](multi-project.md) to extend the pattern across your full workspace.
+Once your single-project memory is working well:
+
+- **[Scaling Across Projects](multi-project.md)** — extend the pattern across your full workspace
+- **[Automation & Hooks](automation.md)** — automate context loading and session capture
+- **[AI Implementation Playbook](ai-implementation.md)** — hand this to your AI assistant to read

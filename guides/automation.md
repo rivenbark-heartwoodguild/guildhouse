@@ -100,26 +100,21 @@ The goal: capture what happened without blocking the user from closing the termi
 
 ```bash
 #!/bin/bash
-# SessionEnd hook — capture and index session knowledge
+# SessionEnd hook — index session knowledge
+#
+# This is a minimal version that re-indexes your search collection
+# after each session. For transcript preparation (converting raw
+# session logs to clean markdown), you'll need to build or adapt
+# a script for your setup — the format depends on your AI assistant.
 
-SESSION_FILE="$1"  # Path to session transcript
+# 1. Re-index: update search collection with any new/changed memory files
+qmd update 2>/dev/null
 
-# Skip tiny sessions (< 5KB — probably just a quick question)
-SIZE=$(wc -c < "$SESSION_FILE" 2>/dev/null || echo 0)
-[ "$SIZE" -lt 5000 ] && exit 0
-
-# 1. Prepare: convert transcript to markdown
-python3 ~/.local/bin/prepare-sessions.py --incremental "$SESSION_FILE"
-
-# 2. Index: update search collection
-qmd update --collection truth 2>/dev/null
-
-# 3. Embed: generate vectors (background — don't block exit)
-nohup qmd embed --collection truth >/dev/null 2>&1 &
-
-# 4. Commit: version control
-cd ~/knowledge && git add -A && git commit -m "auto: session $(date +%Y-%m-%d-%H%M)" --quiet 2>/dev/null
+# 2. Re-embed: generate vectors for new documents (background — don't block exit)
+nohup qmd embed >/dev/null 2>&1 &
 ```
+
+**Note on transcript preparation:** The raw session transcript is specific to your AI assistant's format (Claude Code uses JSONL, others vary). If you want to convert transcripts to searchable markdown, you'll need a preparation script tailored to your format. The important thing is that it outputs clean `.md` files into a directory that QMD indexes. The indexing and embedding steps above handle the rest.
 
 ---
 

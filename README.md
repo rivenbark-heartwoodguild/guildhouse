@@ -101,6 +101,20 @@ Not every query needs the full routing logic:
 
 These fast paths handle roughly 40% of real-world queries and keep average retrieval cost well below what any single system would spend answering everything.
 
+### How the Classifier Works
+
+There is no separate classification model or code. The routing table goes into your AI assistant's project instructions (e.g., `CLAUDE.md` for Claude Code), and the assistant itself pattern-matches each query against the five shapes.
+
+When a user asks "When was the API key rotated?", the assistant reads the query, recognizes "when was X" as an exact-fact shape, and routes to the structured store with a predicate filter. When they ask "How did we end up with this architecture?", it recognizes the narrative shape and routes to semantic search only.
+
+**The prompt IS the classifier.** The five shapes are stable enough that natural language pattern-matching works -- you don't need a trained model to distinguish "When was X renamed?" from "Tell me the history of X." The routing table in your project instructions is the implementation.
+
+This means:
+- **Setup cost is near zero** -- paste the routing table into your project instructions
+- **Customization is editing text** -- add a 6th rule, adjust thresholds, change the wording
+- **No inference overhead** -- classification happens as part of the assistant's normal reasoning, not as a separate step
+- **It works across AI assistants** -- any assistant that reads project instructions can use the same routing table
+
 ## The Evidence
 
 The routing table wasn't designed on a whiteboard. It was derived from 24 benchmark races across 5 seasons -- an internal competition we called "The Guild Prix." Each race pitted four systems against each other on real queries from daily use: the knowledge graph alone, the vector store alone, file-based memory alone, and the hybrid router.
