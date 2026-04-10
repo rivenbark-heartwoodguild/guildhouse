@@ -40,8 +40,11 @@ The goal: give the AI useful context without overloading the context window.
 ```bash
 #!/bin/bash
 # SessionStart hook — load GuildHouse context
+#
+# Claude Code passes project info via environment variables.
+# CWD is the project root when the hook runs.
 
-MEMORY_DIR="$HOME/.claude/projects/$(echo "$PROJECT_PATH" | tr '/' '-')/memory"
+MEMORY_DIR="$HOME/.claude/projects/$(echo "$(pwd)" | tr '/' '-')/memory"
 
 # 1. Check for stale memories (TTL-based)
 if [ -d "$MEMORY_DIR" ]; then

@@ -222,7 +222,23 @@ memory/
 
 ## Test It
 
-Start a new Claude Code session. Verification checklist:
+### Verify auto-memory is enabled
+
+GuildHouse depends on Claude Code's auto-memory feature. Check that it's on:
+
+```bash
+# Look for the memory setting in your config
+cat ~/.claude/settings.json 2>/dev/null | grep -i memory
+
+# Or just check: does your memory directory exist and have files?
+ls ~/.claude/projects/$(echo "$(pwd)" | tr '/' '-')/memory/ 2>/dev/null
+```
+
+If auto-memory is off, enable it in Claude Code settings or by running `/memory on` in a session.
+
+### Start a new session
+
+Start a new Claude Code session in your project. Verification checklist:
 
 1. **Does it load?** — Claude should have access to your MEMORY.md content. You can verify by asking "what do you know about this project?"
 
@@ -232,9 +248,10 @@ Start a new Claude Code session. Verification checklist:
 
 If it doesn't use the memory:
 - Check that MEMORY.md is properly formatted
-- Verify file paths in the index match actual filenames
+- Verify file paths in the index match actual filenames (case-sensitive)
 - Ensure YAML frontmatter is valid (no tabs, proper `---` delimiters)
 - Confirm the memory directory is in the right location under `~/.claude/projects/`
+- Confirm auto-memory is enabled (see above)
 
 ---
 
@@ -244,33 +261,25 @@ File-based memory is fast and free but can only find exact keyword matches. Sema
 
 ### Install QMD
 
-[QMD](https://github.com/tobilu/qmd) is a local vector search engine over markdown files. Install it globally:
+[QMD](https://github.com/tobilu/qmd) is a local vector search engine over markdown files. It runs entirely on your machine — no API keys needed. Install it globally:
 
 ```bash
 npm install -g @tobilu/qmd
 ```
 
+Requires Node.js 18+. Verify it installed: `qmd --help`
+
 ### Configure a collection
 
-Create a QMD config file that points at your memory directory:
+Add your memory directory as a QMD collection:
 
 ```bash
-# Create config directory
-mkdir -p ~/.config/qmd
-
-# Add a collection for your project
-cat >> ~/.config/qmd/config.json << 'EOF'
-{
-  "collections": {
-    "my-project": {
-      "paths": ["~/.claude/projects/-Users-you-your-project/memory"]
-    }
-  }
-}
-EOF
+# Add a collection pointing at your memory directory
+MEMORY_DIR="$HOME/.claude/projects/$(echo "$(pwd)" | tr '/' '-')/memory"
+qmd collection add my-project "$MEMORY_DIR"
 ```
 
-Replace the path with your actual memory directory (the one you found in "Where Memory Lives").
+This writes to `~/.config/qmd/index.yml`. You can add multiple collections (one per project, or a shared knowledge directory).
 
 ### Index and embed
 
@@ -293,18 +302,20 @@ If results come back, semantic search is working. Re-run `qmd update && qmd embe
 
 ### Using semantic search from Claude Code
 
-QMD runs as an MCP server that Claude Code can query directly. Add it to your MCP configuration:
+QMD runs as an MCP server that Claude Code can query directly. Add it to your project's `.mcp.json` file (in your project root):
 
 ```json
 {
   "mcpServers": {
     "qmd": {
       "command": "qmd",
-      "args": ["serve"]
+      "args": ["mcp"]
     }
   }
 }
 ```
+
+Or add it globally in `~/.claude/settings.json` under the `"mcpServers"` key (same format) so it's available in every project.
 
 Once connected, Claude can search your memories by meaning using `qmd query` — this is the "Semantic Search" tier in the routing table.
 
