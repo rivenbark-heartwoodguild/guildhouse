@@ -117,7 +117,7 @@ description: Integration tests must hit real database, not mocks
 type: feedback
 ---
 
-Patrick corrected test approach on 2026-03-15. Unit tests can mock
+Team lead corrected test approach on 2026-03-15. Unit tests can mock
 external services, but database tests must use a real PostgreSQL instance.
 Reason: mock drift caused a production bug in the user table migration.
 ```
