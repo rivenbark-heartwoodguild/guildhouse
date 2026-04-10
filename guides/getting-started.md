@@ -344,12 +344,13 @@ This works but is slightly less ergonomic — the AI runs a shell command instea
 
 ### Other semantic search backends
 
-QMD is what we use, but the "Semantic Search" tier in the routing table is a role, not a specific tool. Any system that takes a text query and returns ranked results works:
+The routing table describes **capabilities**, not specific tools. "Semantic retrieval" means: takes a natural language query, returns ranked passages by meaning. Any system that does this well works:
 
 - **QMD** — local markdown vector search, npm install, no API keys
-- **MemPalace** — if you already have a knowledge graph with search, it can serve double duty as both the KG and semantic search tiers
 - **Chroma, Pinecone, Weaviate** — cloud or local vector databases
 - **Obsidian + Smart Connections** — if your notes are in Obsidian
+
+**Important:** A knowledge graph with a search feature (like MemPalace's `search` command) is **not** the same as semantic search. In our benchmarks, KG search returned 0.08-0.21 similarity on narrative and relationship queries where QMD returned 0.88-0.93. KGs excel at structured retrieval (exact facts, typed relationships). For meaning-based document search, use a purpose-built vector store.
 
 ---
 

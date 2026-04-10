@@ -23,7 +23,7 @@ GuildHouse is a pattern. The core tier (file-based working memory) needs nothing
 | Tier | What | Required? | Options |
 |------|------|-----------|---------|
 | **Workbench** | Markdown files with YAML frontmatter | Yes (the foundation) | Any AI coding assistant with file-based memory. Built on [Claude Code](https://docs.anthropic.com/en/docs/claude-code)'s auto-memory system. |
-| **Semantic Search** | Vector store over your documents | Recommended | [QMD](https://github.com/tobilu/qmd), Obsidian + Smart Connections, any embedding pipeline. A KG with built-in search (like MemPalace) can fill this role too. |
+| **Semantic Search** | Vector store over your documents | Recommended | [QMD](https://github.com/tobilu/qmd), Obsidian + Smart Connections, any embedding pipeline. Note: a KG's built-in search is usually too shallow for this role -- use a purpose-built vector store. |
 | **Knowledge Graph** | Structured facts with temporal validity | Optional (adds precision) | [MemPalace](https://github.com/milla-jovovich/mempalace/tree/main), or any structured store (SQLite, Neo4j, even a JSON file with typed triples) |
 | **Router** | Query classification + dispatch logic | The whole point | Start with the 5-rule table below. Customize through benchmarks. |
 
@@ -82,15 +82,28 @@ Worst for: exact facts, temporal precision, "what changed between X and Y?"
 
 ## The Routing Table
 
-The production router uses five rules based on query shape. Each rule maps to the retrieval system (or combination) best suited for that shape.
+The router maps query shapes to **capabilities**, not tools. Each rule describes what kind of retrieval the query needs -- your specific tools fill those roles.
 
-| Query Shape | Route | ~Token Cost | Example |
+| Query Shape | Capability Needed | ~Token Cost | Example |
 |---|---|---|---|
-| Exact fact (date, status, price) | KG with predicate filter | 15-67 | "When was the product renamed?" |
-| Broad entity ("What is X?") | KG + vector search in parallel | ~1,875 | "What is Project Alpha?" |
-| Narrative (history, context) | Vector search only | ~750 | "Tell me about the design evolution" |
-| Relationship (who, what connects) | Vector search --> KG backfill | ~1,200 | "Who are the active clients?" |
-| Recent activity | File memory --> vector search | ~1,100 | "What happened this week?" |
+| Exact fact (date, status, price) | Structured retrieval (typed facts, predicate filtering) | 15-67 | "When was the product renamed?" |
+| Broad entity ("What is X?") | Structured + semantic in parallel | ~1,875 | "What is Project Alpha?" |
+| Narrative (history, context) | Semantic retrieval only (meaning-based document search) | ~750 | "Tell me about the design evolution" |
+| Relationship (who, what connects) | Semantic retrieval --> structured backfill | ~1,200 | "Who are the active clients?" |
+| Recent activity | File retrieval (grep, dates) --> semantic retrieval | ~1,100 | "What happened this week?" |
+
+**Route by capability, not by tool name.** A knowledge graph with search features might seem like it can fill the "semantic retrieval" role -- but if its search returns 0.08 similarity scores where a vector store returns 0.88, it's not the same capability. Know what each system in your stack is actually good at. In our benchmarks: knowledge graphs excelled at structured retrieval (exact facts, typed relationships), vector stores excelled at semantic retrieval (narrative, meaning-based search), and neither handled recency -- only file-based grep did.
+
+### Example Stack
+
+This is the stack GuildHouse was built on. Your tools will differ -- what matters is which capability each one fills.
+
+| Capability | Our Tool | What It Does |
+|------------|----------|-------------|
+| **Structured retrieval** | [MemPalace](https://github.com/milla-jovovich/mempalace/tree/main) (KG via MCP) | 559+ triples with temporal validity. `kg_query(entity, predicate, current_only)` returns exact facts in 15-67 tokens. |
+| **Semantic retrieval** | [QMD](https://github.com/tobilu/qmd) (vector search via MCP) | 6,471 vectors across 7 collections. `query(lex+vec+hyde)` returns ranked passages by meaning. Scores 0.88-0.93 on narrative queries. |
+| **File retrieval** | Claude Code auto-memory (Grep/Read) | Markdown files at `~/.claude/projects/<path>/memory/`. Zero latency, zero tokens to query, always current. |
+| **Classifier** | The routing table in `CLAUDE.md` | Claude reads the 5 rules and pattern-matches each query. No separate model or code. |
 
 ### Fast-Path Rules
 
